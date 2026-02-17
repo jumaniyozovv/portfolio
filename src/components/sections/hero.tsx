@@ -1,43 +1,33 @@
 "use client";
 
-import { ArrowDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Spotlight } from "@/components/ui/spotlight";
-import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import { MaskContainer } from "@/components/ui/svg-mask-effect";
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      <Spotlight className="-top-40 left-0 md:-top-20 md:left-60" />
+    <section className="relative h-screen w-full overflow-hidden">
+      {/* <Spotlight className="-top-40 left-0 md:-top-20 md:left-60" /> */}
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
-        <TextGenerateEffect
-          words="Hi, I'm a Full-Stack Developer"
-          className="text-4xl leading-tight md:text-6xl md:leading-tight"
-        />
-
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
-          I build modern web applications with a focus on performance, user
-          experience, and clean code.
+      <MaskContainer
+        revealSize={350}
+        idleSize={8}
+        revealText={
+          <p className="mx-auto max-w-4xl px-6 text-center text-4xl font-bold leading-tight text-slate-800 md:text-6xl md:leading-tight">
+            I turn ideas into fast, beautiful, and scalable web experiences using{" "}
+            <span className="text-blue-500">React</span>,{" "}
+            <span className="text-blue-500">Next.js</span>,{" "}
+            <span className="text-blue-500">TypeScript</span>, and{" "}
+            <span className="text-blue-500">Tailwind CSS</span>.
+          </p>
+        }
+      >
+        <p className="mx-auto max-w-4xl px-6 text-center text-4xl leading-tight text-muted-foreground md:text-6xl md:leading-tight">
+          Hi, I&apos;m{" "}
+          <span className="font-bold text-foreground">Nodir Jumaniyozov</span>.
+          A Software Developer who builds modern web applications with a focus
+          on performance, user experience, and clean code.
         </p>
-
-        <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Button asChild size="lg">
-            <a href="#projects">View Projects</a>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <a href="#contact">Get in Touch</a>
-          </Button>
-        </div>
-
-        <a
-          href="#about"
-          className="mt-16 inline-block animate-bounce text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Scroll to about section"
-        >
-          <ArrowDown size={24} />
-        </a>
-      </div>
+      </MaskContainer>
     </section>
   );
 }

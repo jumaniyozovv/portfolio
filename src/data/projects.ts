@@ -7,17 +7,17 @@ export const projects: Project[] = [
     description:
       "A modern portfolio built with Next.js, Tailwind CSS, and shadcn/ui featuring real-time chat and smooth animations.",
     tech: ["Next.js", "TypeScript", "Tailwind CSS", "Socket.io"],
-    github: "https://github.com",
+    github: "https://github.com/jumaniyozovv/portfolio",
     live: "https://example.com",
     featured: true,
   },
   {
-    id: "ecommerce",
-    title: "E-Commerce Platform",
+    id: "day off",
+    title: "Day Off with min requirments",
     description:
-      "Full-stack e-commerce application with product management, cart functionality, and payment integration.",
-    tech: ["React", "Node.js", "PostgreSQL", "Stripe"],
-    github: "https://github.com",
+      "React web app for getting day off. Uses local storage to store requests",
+    tech: ["React", "tailwindcss", "shadcn ui"],
+    github: "https://github.com/jumaniyozovv/dayoff",
     featured: true,
   },
   {
@@ -25,18 +25,18 @@ export const projects: Project[] = [
     title: "Task Manager",
     description:
       "A collaborative task management tool with real-time updates and team workspaces.",
-    tech: ["Next.js", "Prisma", "WebSockets", "Redis"],
-    github: "https://github.com",
+    tech: ["Next.js", "Prisma", "WebSockets", "Redis","docker"],
+    github: "https://github.com/jumaniyozovv/mms",
     live: "https://example.com",
     featured: true,
   },
   {
-    id: "cli-tool",
-    title: "CLI Productivity Tool",
+    id: "expo",
+    title: "Expo app for booking products",
     description:
       "A command-line tool for automating development workflows and project scaffolding.",
-    tech: ["Node.js", "TypeScript", "Commander.js"],
-    github: "https://github.com",
+    tech: ["expo", "TypeScript", "Nativewind"],
+    github: "https://github.com/jumaniyozovv/expo",
     featured: false,
   },
 ];

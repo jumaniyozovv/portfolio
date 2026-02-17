@@ -1,4 +1,4 @@
-import { Github, Instagram, Linkedin, Mail } from "lucide-react";
+import { Github, Instagram, Mail, Send } from "lucide-react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ChatWidget } from "@/components/chat/chat-widget";
@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio",
-  description: "Full-stack developer portfolio",
+  title: "Nodir Jumaniyozov — Portfolio",
+  description: "Software Web Developer portfolio",
 };
 
 const dockItems = [
@@ -32,9 +32,14 @@ const dockItems = [
     href: "https://instagram.com/n.juman1yozov",
   },
   {
+    title: "Telegram",
+    icon: <Send className="size-full" />,
+    href: "https://t.me/njumaniyozov",
+  },
+  {
     title: "Email",
     icon: <Mail className="size-full" />,
-    href: "mailto:hello@example.com",
+    href: "mail.google.com/njumaniyozov001@gmail.com",
   },
 ];
 
