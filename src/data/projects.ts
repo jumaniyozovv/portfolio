@@ -8,7 +8,6 @@ export const projects: Project[] = [
       "A modern portfolio built with Next.js, Tailwind CSS, and shadcn/ui featuring real-time chat and smooth animations.",
     tech: ["Next.js", "TypeScript", "Tailwind CSS", "Socket.io"],
     github: "https://github.com/jumaniyozovv/portfolio",
-    live: "https://example.com",
     featured: true,
   },
   {
@@ -27,7 +26,6 @@ export const projects: Project[] = [
       "A collaborative task management tool with real-time updates and team workspaces.",
     tech: ["Next.js", "Prisma", "WebSockets", "Redis","docker"],
     github: "https://github.com/jumaniyozovv/mms",
-    live: "https://example.com",
     featured: true,
   },
   {
@@ -37,6 +35,6 @@ export const projects: Project[] = [
       "A command-line tool for automating development workflows and project scaffolding.",
     tech: ["expo", "TypeScript", "Nativewind"],
     github: "https://github.com/jumaniyozovv/expo",
-    featured: false,
+    featured: true,
   },
 ];

@@ -15,12 +15,12 @@ export function ChatWidget() {
         className={cn(
           "mb-4 flex flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl transition-all duration-300",
           isOpen
-            ? "h-[420px] w-[340px] opacity-100"
+            ? "h-105 w-85 opacity-100"
             : "pointer-events-none h-0 w-0 opacity-0",
         )}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <span className="text-sm font-semibold">Chat</span>
+          <span className="text-sm font-semibold">Chat with Developer</span>
           <button
             type="button"
             onClick={toggle}
@@ -37,10 +37,10 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={toggle}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
+        className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105"
         aria-label="Open chat"
       >
-        <MessageCircle size={24} />
+        <MessageCircle size={22} />
       </button>
     </div>
   );

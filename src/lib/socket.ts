@@ -1,15 +1,34 @@
-// Socket.io client placeholder
-// Will be configured when the backend is set up
+import { io, type Socket } from "socket.io-client";
 
-// import { io } from "socket.io-client";
-// export const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3001");
+let socket: Socket | null = null;
 
-export function connectSocket() {
-  // TODO: Initialize socket connection
-  console.log("Socket connection placeholder");
+function getSessionId(): string {
+  const key = "chat-session-id";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+export function getSocket(): Socket {
+  if (!socket) {
+    const url = process.env.NEXT_PUBLIC_SOCKET_URL;
+    socket = io(url ?? undefined, {
+      auth: { sessionId: getSessionId() },
+      autoConnect: false,
+    });
+  }
+  return socket;
+}
+
+export function connectSocket(): Socket {
+  const s = getSocket();
+  if (!s.connected) s.connect();
+  return s;
 }
 
 export function disconnectSocket() {
-  // TODO: Disconnect socket
-  console.log("Socket disconnect placeholder");
+  socket?.disconnect();
 }

@@ -16,10 +16,10 @@ export function ProjectsSection() {
           A selection of things I've built.
         </p>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12  gap-6 flex items-center justify-center flex-wrap">
           {displayProjects.map((project) => (
             <CardContainer key={project.id} containerClassName="py-0">
-              <CardBody className="group/card relative flex h-full w-full flex-col rounded-xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm">
+              <CardBody className="group/card relative flex h-72 w-70 flex-col rounded-xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm">
                 <CardItem translateZ="50" className="w-full">
                   <h3 className="text-xl font-semibold">{project.title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">

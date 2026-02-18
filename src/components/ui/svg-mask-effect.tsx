@@ -9,9 +9,10 @@ import {
 } from "react";
 import { frame, motion, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { TextGenerateEffect } from "./text-generate-effect";
 
 interface MaskContainerProps {
-  children: ReactNode;
+  words: string;
   revealText: ReactNode;
   className?: string;
   revealSize?: number;
@@ -19,7 +20,7 @@ interface MaskContainerProps {
 }
 
 export function MaskContainer({
-  children,
+  words,
   revealText,
   className,
   revealSize = 300,
@@ -73,12 +74,10 @@ export function MaskContainer({
   return (
     <div
       ref={containerRef}
-      className={cn("relative h-full w-full", className)}
+      className={cn("relative h-full w-full flex items-center justify-center", className)}
     >
       {/* Default text layer — visible outside the mask */}
-      <div className="flex h-full w-full items-center justify-center">
-        {children}
-      </div>
+      <TextGenerateEffect className="mx-auto max-w-4xl px-6 text-center text-4xl font-bold leading-tight md:text-6xl md:leading-tight " words={words}/>
 
       {/* Reveal layer — clipped by the SVG circle mask */}
       <svg

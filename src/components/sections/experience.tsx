@@ -6,12 +6,15 @@ import { ContainerTextFlip } from "@/components/ui/container-text-flip";
 import { Timeline } from "@/components/ui/timeline";
 import { motion } from "framer-motion";
 import {
+  BookOpen,
   Briefcase,
   Code2,
   GraduationCap,
+  Languages,
   Rocket,
   School,
 } from "lucide-react";
+import { Cover } from "../ui/cover";
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -41,8 +44,8 @@ const timelineData = [
             <h4 className="text-lg font-semibold text-foreground md:text-xl">
               Finished{" "}
               <LinkPreview imageSrc="/school.png" width={280}
-              
-               height={180}>
+
+                height={180}>
                 School
               </LinkPreview>
             </h4>
@@ -130,7 +133,7 @@ const timelineData = [
             <ContainerTextFlip
               words={skills}
               interval={2500}
-              className="!text-sm !py-1 !px-0"
+              className="text-sm! py-1! px-0!"
               textClassName="!text-sm"
             />
           </div>
@@ -224,20 +227,64 @@ const timelineData = [
           className="mt-8 space-y-4"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10">
-              <Rocket className="h-5 w-5 text-pink-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/10">
+              <Languages className="h-5 w-5 text-sky-400" />
             </div>
             <h4 className="text-lg font-semibold text-foreground md:text-xl">
-              What&apos;s Next
+              Learning English
             </h4>
           </div>
           <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
-            Continuously growing as a developer, exploring new technologies, and
-            building impactful web applications. Eager to take on{" "}
+            Currently studying English at{" "}
+            <LinkPreview imageSrc="/boyko.png" width={240} height={150}>
+              Stanislav Boyka&apos;s Advanced Course
+            </LinkPreview>
+            . Can communicate in English and working towards certification.
+            Language skills are essential for accessing global developer
+            communities and documentation.
+          </p>
+          <div className="rounded-lg border border-border/50 bg-card/50 p-4">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Course
+            </p>
+            <p className="mt-1 text-sm font-semibold text-foreground">
+              Stanislav Boyka — Advanced English
+            </p>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mt-3">
+              Status
+            </p>
+            <p className="mt-1 text-sm font-semibold text-foreground">
+              In progress
+            </p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          {...fadeIn}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-8 space-y-4"
+        >
+          <Cover>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10">
+                <Rocket className="h-5 w-5 text-pink-400" />
+              </div>
+              <h4 className="text-lg font-semibold text-foreground md:text-xl">
+                Growing on All Fronts
+              </h4>
+            </div>
+          </Cover>
+
+          <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
+            Balancing{" "}
+            <span className="font-medium text-foreground">university</span>,{" "}
+            <span className="font-medium text-foreground">work</span>, and{" "}
             <span className="font-medium text-foreground">
-              new challenges
+              English studies
             </span>{" "}
-            and contribute to innovative projects.
+            simultaneously. Focused on strengthening my weak areas while
+            building real-world projects. The journey is demanding, but every
+            challenge is an opportunity to grow.
           </p>
         </motion.div>
       </div>

@@ -4,6 +4,8 @@ import { Spotlight } from "@/components/ui/spotlight";
 import { MaskContainer } from "@/components/ui/svg-mask-effect";
 
 export function Hero() {
+  const words = `Hi, I'm Nodir Jumaniyozov. A Software Developer who builds modern web applications with a focus
+          on performance, user experience, and clean code.`
   return (
     <section className="relative h-screen w-full overflow-hidden">
       {/* <Spotlight className="-top-40 left-0 md:-top-20 md:left-60" /> */}
@@ -20,14 +22,7 @@ export function Hero() {
             <span className="text-blue-500">Tailwind CSS</span>.
           </p>
         }
-      >
-        <p className="mx-auto max-w-4xl px-6 text-center text-4xl leading-tight text-muted-foreground md:text-6xl md:leading-tight">
-          Hi, I&apos;m{" "}
-          <span className="font-bold text-foreground">Nodir Jumaniyozov</span>.
-          A Software Developer who builds modern web applications with a focus
-          on performance, user experience, and clean code.
-        </p>
-      </MaskContainer>
+        words={words}/>
     </section>
   );
 }

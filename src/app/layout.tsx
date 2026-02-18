@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { FloatingDock } from "@/components/ui/floating-dock";
+import { WebcamBackground } from "@/components/webcam-background";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,7 +54,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
-        <main>{children}</main>
+        <WebcamBackground />
+        <main className="relative z-10">{children}</main>
         <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
           <FloatingDock items={dockItems} />
         </div>
