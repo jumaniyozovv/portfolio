@@ -1,53 +1,214 @@
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
+
 import { createServer } from "node:http";
 import next from "next";
 import { Server as SocketServer } from "socket.io";
 import TelegramBot from "node-telegram-bot-api";
+import { UAParser } from "ua-parser-js";
+import type {
+  ChatMessagePayload,
+  ClientToServerEvents,
+  ServerToClientEvents,
+  VisitorInfo,
+  VisitorSession,
+} from "@/types";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = Number(process.env.PORT) || 3000;
 
+// ─── Session store ────────────────────────────────────────────────────────────
+
+const sessions = new Map<string, VisitorSession>();
+const telegramMsgToSession = new Map<number, string>();
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function parseUA(raw: string): { browser: string; os: string } {
+  const parser = new UAParser(raw);
+  const browser = parser.getBrowser();
+  const os = parser.getOS();
+  return {
+    browser:
+      [browser.name, browser.version?.split(".")[0]]
+        .filter(Boolean)
+        .join(" ") || "Unknown browser",
+    os: [os.name, os.version].filter(Boolean).join(" ") || "Unknown OS",
+  };
+}
+
+function formatVisitorCard(session: VisitorSession): string {
+  const { ip, userAgent, info } = session;
+  const { browser, os } = parseUA(userAgent);
+
+  const lines = [
+    `🔔 New visitor — #${session.sessionId.slice(0, 8)}`,
+    `─────────────────────`,
+    `🌍 IP: ${ip}`,
+    info
+      ? `🖥 ${browser} on ${os} — ${info.device.deviceType}`
+      : `🖥 ${browser} on ${os}`,
+    info
+      ? `📐 Screen: ${info.device.screenWidth}×${info.device.screenHeight}`
+      : null,
+    info ? `🌐 Language: ${info.context.language}` : null,
+    info ? `🕐 Timezone: ${info.context.timezone}` : null,
+    info?.context.url ? `📄 Page: ${info.context.url}` : null,
+    info?.context.referrer ? `↩ Referrer: ${info.context.referrer}` : null,
+    `🕐 Connected: ${session.connectedAt.toLocaleTimeString()}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return lines;
+}
+
+function formatMessage(session: VisitorSession, content: string): string {
+  return `💬 [${session.sessionId.slice(0, 8)}] #${session.messageCount}\n\n${content}`;
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-// Session tracking
-const sessionToSocket = new Map<string, string>(); // sessionId → socketId
-const telegramMsgToSession = new Map<number, string>(); // telegramMsgId → sessionId
-const sessionMessageCount = new Map<string, number>(); // sessionId → message count
-
 app.prepare().then(() => {
-  const httpServer = createServer(handle);
-
-  const io = new SocketServer(httpServer, {
-    cors: { origin: "*" },
-  });
-
-  // Telegram bot setup
+  // ✅ declared ONCE here, never inside createServer
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
 
   if (!botToken || !chatId) {
-    console.warn(
-      "TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set — chat will work without Telegram forwarding",
-    );
+    console.warn("⚠ TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not set");
   }
 
-  const bot = botToken ? new TelegramBot(botToken, { polling: true }) : null;
+  const bot = botToken ? new TelegramBot(botToken, { polling: dev }) : null;
 
-  // Handle replies from Telegram
+  // ─── HTTP server ────────────────────────────────────────────────────────────
+
+  const httpServer = createServer((req, res) => {
+    // Telegram webhook endpoint (production only)
+    if (req.method === "POST" && req.url === "/webhook") {
+      let body = "";
+      req.on("data", (chunk) => (body += chunk));
+      req.on("end", () => {
+        try {
+          bot?.processUpdate(JSON.parse(body));
+        } catch (e) {
+          console.error("Webhook parse error:", e);
+        }
+        res.writeHead(200);
+        res.end();
+      });
+      return;
+    }
+
+    // Everything else → Next.js
+    handle(req, res);
+  });
+
+  // ─── Socket.io ──────────────────────────────────────────────────────────────
+
+  const io = new SocketServer<ClientToServerEvents, ServerToClientEvents>(
+    httpServer,
+    { cors: { origin: process.env.FRONTEND_URL || "*" } },
+  );
+
+  io.on("connection", (socket) => {
+    const sessionId = socket.handshake.auth.sessionId as string;
+    if (!sessionId) {
+      socket.disconnect();
+      return;
+    }
+
+    const ip =
+      (socket.handshake.headers["x-forwarded-for"] as string)
+        ?.split(",")[0]
+        ?.trim() || socket.handshake.address;
+
+    const session: VisitorSession = {
+      sessionId,
+      socketId: socket.id,
+      ip,
+      userAgent: socket.handshake.headers["user-agent"] || "Unknown",
+      info: null,
+      messageCount: 0,
+      connectedAt: new Date(),
+      telegramMessageIds: new Set(),
+    };
+
+    sessions.set(sessionId, session);
+    console.log(`✅ Connected: session=${sessionId.slice(0, 8)} ip=${ip}`);
+
+    socket.on("visitor:info", async (data: VisitorInfo) => {
+      session.info = data;
+      if (!bot || !chatId) return;
+
+      try {
+        const sent = await bot.sendMessage(chatId, formatVisitorCard(session));
+        session.telegramMessageIds.add(sent.message_id);
+        telegramMsgToSession.set(sent.message_id, sessionId);
+      } catch (err) {
+        console.error("Failed to send visitor card:", err);
+      }
+    });
+
+    socket.on("chat:message", async (data: ChatMessagePayload) => {
+      if (!data.content?.trim()) return;
+
+      session.messageCount += 1;
+
+      if (!bot || !chatId) return;
+
+      if (session.messageCount === 1 && !session.info) {
+        try {
+          const card = await bot.sendMessage(
+            chatId,
+            formatVisitorCard(session),
+          );
+          session.telegramMessageIds.add(card.message_id);
+          telegramMsgToSession.set(card.message_id, sessionId);
+        } catch (err) {
+          console.error("Failed to send late visitor card:", err);
+        }
+      }
+
+      try {
+        const sent = await bot.sendMessage(
+          chatId,
+          formatMessage(session, data.content),
+        );
+        session.telegramMessageIds.add(sent.message_id);
+        telegramMsgToSession.set(sent.message_id, sessionId);
+      } catch (err) {
+        console.error("Failed to send message to Telegram:", err);
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`❌ Disconnected: session=${sessionId.slice(0, 8)}`);
+      for (const msgId of session.telegramMessageIds) {
+        telegramMsgToSession.delete(msgId);
+      }
+      sessions.delete(sessionId);
+    });
+  });
+
+  // ─── Telegram reply routing ──────────────────────────────────────────────────
+
   if (bot) {
     bot.on("message", (msg) => {
-      // Only process replies to bot messages (i.e. your replies in Telegram)
       if (!msg.reply_to_message || !msg.text) return;
 
-      const repliedToId = msg.reply_to_message.message_id;
-      const sessionId = telegramMsgToSession.get(repliedToId);
+      const sessionId = telegramMsgToSession.get(
+        msg.reply_to_message.message_id,
+      );
       if (!sessionId) return;
 
-      const socketId = sessionToSocket.get(sessionId);
-      if (!socketId) return;
+      const session = sessions.get(sessionId);
+      if (!session) return;
 
-      const socket = io.sockets.sockets.get(socketId);
+      const socket = io.sockets.sockets.get(session.socketId);
       if (!socket) return;
 
       socket.emit("chat:reply", {
@@ -59,70 +220,9 @@ app.prepare().then(() => {
     });
   }
 
-  // Socket.io connection handling
-  io.on("connection", (socket) => {
-    const sessionId = socket.handshake.auth.sessionId as string;
-    if (!sessionId) {
-      socket.disconnect();
-      return;
-    }
-
-    sessionToSocket.set(sessionId, socket.id);
-    console.log(`Client connected: session=${sessionId} socket=${socket.id}`);
-
-    socket.on(
-      "chat:message",
-      async (data: {
-        content: string;
-        url?: string;
-        referrer?: string;
-        timezone?: string;
-        language?: string;
-      }) => {
-        if (!bot || !chatId) return;
-
-        const count = (sessionMessageCount.get(sessionId) ?? 0) + 1;
-        sessionMessageCount.set(sessionId, count);
-
-        const ip =
-          socket.handshake.headers["x-forwarded-for"] ||
-          socket.handshake.address;
-        const ua = socket.handshake.headers["user-agent"] || "Unknown";
-
-        // First message from this session — include full context
-        const meta =
-          count === 1
-            ? [
-                `\n\n--- Visitor Info ---`,
-                `IP: ${ip}`,
-                `UA: ${ua}`,
-                data.url ? `Page: ${data.url}` : null,
-                data.referrer ? `Referrer: ${data.referrer}` : null,
-                data.timezone ? `TZ: ${data.timezone}` : null,
-                data.language ? `Lang: ${data.language}` : null,
-              ]
-                .filter(Boolean)
-                .join("\n")
-            : "";
-
-        const text = `💬 [${sessionId.slice(0, 8)}] #${count}\n\n${data.content}${meta}`;
-
-        try {
-          const sent = await bot.sendMessage(chatId, text);
-          telegramMsgToSession.set(sent.message_id, sessionId);
-        } catch (err) {
-          console.error("Failed to send to Telegram:", err);
-        }
-      },
-    );
-
-    socket.on("disconnect", () => {
-      console.log(`Client disconnected: session=${sessionId}`);
-      // Keep session mapping alive so Telegram replies still work
-    });
-  });
+  // ─── Start ───────────────────────────────────────────────────────────────────
 
   httpServer.listen(port, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+    console.log(`🚀 Ready on http://${hostname}:${port}`);
   });
 });

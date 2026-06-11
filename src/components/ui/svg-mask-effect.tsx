@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useRef,
-  useState,
-  useEffect,
-  useId,
-  type ReactNode,
-} from "react";
+import { useRef, useState, useEffect, useId, type ReactNode } from "react";
 import { frame, motion, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { TextGenerateEffect } from "./text-generate-effect";
@@ -74,10 +68,16 @@ export function MaskContainer({
   return (
     <div
       ref={containerRef}
-      className={cn("relative h-full w-full flex items-center justify-center", className)}
+      className={cn(
+        "relative h-full w-full flex items-center justify-center",
+        className,
+      )}
     >
       {/* Default text layer — visible outside the mask */}
-      <TextGenerateEffect className="mx-auto max-w-4xl px-6 text-center text-4xl font-bold leading-tight md:text-6xl md:leading-tight " words={words}/>
+      <TextGenerateEffect
+        className="mx-auto max-w-4xl px-6 text-center text-4xl font-bold leading-tight md:text-6xl md:leading-tight "
+        words={words}
+      />
 
       {/* Reveal layer — clipped by the SVG circle mask */}
       <svg
@@ -87,12 +87,7 @@ export function MaskContainer({
         <defs>
           <mask id={maskId}>
             <rect width="100%" height="100%" fill="black" />
-            <motion.circle
-              cx={maskCx}
-              cy={maskCy}
-              r={maskR}
-              fill="white"
-            />
+            <motion.circle cx={maskCx} cy={maskCy} r={maskR} fill="white" />
           </mask>
         </defs>
         <foreignObject

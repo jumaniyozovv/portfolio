@@ -23,13 +23,7 @@ const fadeIn = {
   viewport: { once: true },
 };
 
-const skills = [
-  "React",
-  "Next.js",
-  "TypeScript",
-  "JavaScript",
-  "Tailwind CSS",
-];
+const skills = ["React", "Next.js", "TypeScript", "JavaScript", "Tailwind CSS"];
 
 const timelineData = [
   {
@@ -43,9 +37,7 @@ const timelineData = [
             </div>
             <h4 className="text-lg font-semibold text-foreground md:text-xl">
               Finished{" "}
-              <LinkPreview imageSrc="/school.png" width={280}
-
-                height={180}>
+              <LinkPreview imageSrc="/school.png" width={280} height={180}>
                 School
               </LinkPreview>
             </h4>
@@ -194,8 +186,7 @@ const timelineData = [
             <span className="font-medium text-foreground">
               Frontend Developer
             </span>{" "}
-            at{" "}
-            <span className="font-medium text-foreground">IT-Forelead</span>{" "}
+            at <span className="font-medium text-foreground">IT-Forelead</span>{" "}
             for the past 5 months. Building modern, performant web applications
             using cutting-edge technologies.
           </p>
@@ -279,9 +270,7 @@ const timelineData = [
             Balancing{" "}
             <span className="font-medium text-foreground">university</span>,{" "}
             <span className="font-medium text-foreground">work</span>, and{" "}
-            <span className="font-medium text-foreground">
-              English studies
-            </span>{" "}
+            <span className="font-medium text-foreground">English studies</span>{" "}
             simultaneously. Focused on strengthening my weak areas while
             building real-world projects. The journey is demanding, but every
             challenge is an opportunity to grow.

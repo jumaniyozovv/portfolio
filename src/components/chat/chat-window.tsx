@@ -50,7 +50,19 @@ export function ChatWindow({ messages, onSend }: ChatWindowProps) {
                 : "bg-muted text-muted-foreground",
             )}
           >
-            <p className="text-sm">{msg.content}<span className={cn(msg.role==="user"? "text-gray-900":"text-gray-300","text-[10px]  leading-tight absolute bottom-0 right-1")}>{format(msg.timestamp,"HH:mm")}</span></p> 
+            <p className="text-sm">
+              {msg.content}
+              <span
+                className={cn(
+                  msg.role === "user"
+                    ? "text-primary-foreground/60"
+                    : "text-muted-foreground/70",
+                  "text-[10px]  leading-tight absolute bottom-0 right-1",
+                )}
+              >
+                {format(msg.timestamp, "HH:mm")}
+              </span>
+            </p>
           </div>
         ))}
       </div>

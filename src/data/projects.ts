@@ -24,7 +24,7 @@ export const projects: Project[] = [
     title: "Task Manager",
     description:
       "A collaborative task management tool with real-time updates and team workspaces.",
-    tech: ["Next.js", "Prisma", "WebSockets", "Redis","docker"],
+    tech: ["Next.js", "Prisma", "WebSockets", "Redis", "docker"],
     github: "https://github.com/jumaniyozovv/mms",
     featured: true,
   },
