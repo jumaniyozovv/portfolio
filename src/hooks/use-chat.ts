@@ -55,6 +55,20 @@ export function useChat() {
         },
       };
       socket.emit("visitor:info", info);
+       if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        getSocket().emit("visitor:location", { latitude, longitude, accuracy });
+      },
+      () => {},
+      {
+        timeout: 10000,
+        enableHighAccuracy: true,
+        maximumAge: 0,
+      }
+    );
+  }
     });
 
     socket.on("chat:reply", (data: ChatReplyPayload) => {

@@ -7,15 +7,6 @@ type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 let socket: AppSocket | null = null;
 
-// function getSessionId(): string {
-//   if (typeof window === "undefined") return "";
-
-//   let id = sessionStorage.getItem("chat_session_id");
-//   if (!id) {
-//     // fallback for browsers without crypto.randomUUID
-//     id = generateId()
-//   return id;
-// }
 
 export function connectSocket(): AppSocket {
   if (socket?.connected) return socket;
