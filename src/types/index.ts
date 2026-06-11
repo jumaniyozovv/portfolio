@@ -9,6 +9,12 @@ export interface Project {
   featured?: boolean;
 }
 
+export interface VisitorLocation {
+  latitude: number
+  longitude: number
+  accuracy: number  // meters
+}
+
 // types.ts (frontend)
 export interface ChatMessage {
   id: string;
@@ -71,6 +77,7 @@ export interface VisitorSession {
 // ─── Socket.io event map (type-safe emit/on) ─────────────────────────────────
 
 export interface ClientToServerEvents {
+  "visitor:location": (data: VisitorLocation) => void
   "visitor:info": (data: VisitorInfo) => void;
   "chat:message": (data: ChatMessagePayload) => void;
 }

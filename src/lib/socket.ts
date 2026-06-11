@@ -1,33 +1,27 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: <explanation> */
 import { io, type Socket } from "socket.io-client";
 import type { ClientToServerEvents, ServerToClientEvents } from "@/types";
+import { generateId } from "./uuid";
 
 type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
 let socket: AppSocket | null = null;
 
-function getSessionId(): string {
-  if (typeof window === "undefined") return "";
+// function getSessionId(): string {
+//   if (typeof window === "undefined") return "";
 
-  let id = sessionStorage.getItem("chat_session_id");
-  if (!id) {
-    // fallback for browsers without crypto.randomUUID
-    id =
-      typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : Array.from(crypto.getRandomValues(new Uint8Array(16)))
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("-");
-    sessionStorage.setItem("chat_session_id", id);
-  }
-  return id;
-}
+//   let id = sessionStorage.getItem("chat_session_id");
+//   if (!id) {
+//     // fallback for browsers without crypto.randomUUID
+//     id = generateId()
+//   return id;
+// }
 
 export function connectSocket(): AppSocket {
   if (socket?.connected) return socket;
 
   socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
-    auth: { sessionId: getSessionId() },
+    auth: { sessionId: generateId() },
     transports: ["websocket"],
     reconnectionAttempts: 5,
     reconnectionDelay: 2000,

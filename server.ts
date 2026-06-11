@@ -37,15 +37,31 @@ function parseUA(raw: string): { browser: string; os: string } {
     os: [os.name, os.version].filter(Boolean).join(" ") || "Unknown OS",
   };
 }
-
-function formatVisitorCard(session: VisitorSession): string {
+async function getLocation(ip: string): Promise<string> {
+  try {
+    // skip for localhost
+    if (ip === "::1" || ip === "127.0.0.1") return "localhost";
+    
+    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,regionName,city`);
+    const data = await res.json();
+    
+    return [data.city, data.regionName, data.country]
+      .filter(Boolean)
+      .join(", ");
+  } catch {
+    return "Unknown";
+  }
+}
+async function formatVisitorCard(session: VisitorSession): Promise<string> {
   const { ip, userAgent, info } = session;
   const { browser, os } = parseUA(userAgent);
+  const location = await getLocation(ip)
 
   const lines = [
     `🔔 New visitor — #${session.sessionId.slice(0, 8)}`,
     `─────────────────────`,
     `🌍 IP: ${ip}`,
+    `📍 Location: ${location}`,
     info
       ? `🖥 ${browser} on ${os} — ${info.device.deviceType}`
       : `🖥 ${browser} on ${os}`,
@@ -140,12 +156,30 @@ app.prepare().then(() => {
     sessions.set(sessionId, session);
     console.log(`✅ Connected: session=${sessionId.slice(0, 8)} ip=${ip}`);
 
+    socket.on("visitor:location", async (data) => {
+  const { latitude, longitude, accuracy } = data;
+  const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+
+  if (!bot || !chatId) return;
+
+  try {
+    await bot.sendMessage(
+      chatId,
+      `📍 Live location (±${Math.round(accuracy)}m)\n${mapsUrl}`
+    );
+    // or send as a Telegram location pin:
+    await bot.sendLocation(chatId, latitude, longitude);
+  } catch (err) {
+    console.error("Failed to send location:", err);
+  }
+});
+
     socket.on("visitor:info", async (data: VisitorInfo) => {
       session.info = data;
       if (!bot || !chatId) return;
 
       try {
-        const sent = await bot.sendMessage(chatId, formatVisitorCard(session));
+        const sent = await bot.sendMessage(chatId, await formatVisitorCard(session));
         session.telegramMessageIds.add(sent.message_id);
         telegramMsgToSession.set(sent.message_id, sessionId);
       } catch (err) {
@@ -164,7 +198,7 @@ app.prepare().then(() => {
         try {
           const card = await bot.sendMessage(
             chatId,
-            formatVisitorCard(session),
+            await  formatVisitorCard(session),
           );
           session.telegramMessageIds.add(card.message_id);
           telegramMsgToSession.set(card.message_id, sessionId);

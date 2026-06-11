@@ -6,7 +6,7 @@ import { useChat } from "@/hooks/use-chat";
 import { cn } from "@/lib/utils";
 
 export function ChatWidget() {
-  const { messages, isOpen, toggle, sendMessage } = useChat();
+  const { messages, isOpen, toggle, sendMessage, clearMessages } = useChat();
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -21,14 +21,26 @@ export function ChatWidget() {
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="text-sm font-semibold">Chat with Developer</span>
-          <button
-            type="button"
-            onClick={toggle}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Close chat"
-          >
-            <X size={16} />
-          </button>
+          <div className="flex items-center gap-2">
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={clearMessages}
+                className="text-xs text-muted-foreground transition-colors hover:text-destructive"
+                aria-label="Clear chat"
+              >
+                Clear
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={toggle}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Close chat"
+            >
+              <X size={16} />
+            </button>
+          </div>
         </div>
         <ChatWindow messages={messages} onSend={sendMessage} />
       </div>

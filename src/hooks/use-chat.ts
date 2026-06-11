@@ -3,11 +3,34 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { connectSocket, disconnectSocket, getSocket } from "@/lib/socket";
 import type { ChatMessage, ChatReplyPayload, VisitorInfo } from "@/types";
+import { generateId } from "@/lib/uuid";
+
+const MESSAGES_KEY = "chat_messages";
+
+function loadMessages(): ChatMessage[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = sessionStorage.getItem(MESSAGES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveMessages(messages: ChatMessage[]) {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+}
 
 export function useChat() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
   const [isOpen, setIsOpen] = useState(false);
   const connectedRef = useRef(false);
+
+  // Persist messages to sessionStorage on every change
+  useEffect(() => {
+    saveMessages(messages);
+  }, [messages]);
 
   useEffect(() => {
     if (connectedRef.current) return;
@@ -15,15 +38,12 @@ export function useChat() {
 
     const socket = connectSocket();
 
-    // Fires once when socket successfully connects
     socket.on("connect", () => {
       const info: VisitorInfo = {
         device: {
-          browser: "", // parsed server-side from User-Agent header
+          browser: "",
           os: "",
-          deviceType: /Mobi|Android/i.test(navigator.userAgent)
-            ? "mobile"
-            : "desktop",
+          deviceType: /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop",
           screenWidth: window.screen.width,
           screenHeight: window.screen.height,
         },
@@ -37,15 +57,17 @@ export function useChat() {
       socket.emit("visitor:info", info);
     });
 
-    // Fires when server pushes a reply from Telegram
     socket.on("chat:reply", (data: ChatReplyPayload) => {
-      const reply: ChatMessage = {
-        id: data.id,
-        role: "assistant",
-        content: data.content,
-        timestamp: data.timestamp, // already an ISO string
-      };
-      setMessages((prev) => [...prev, reply]);
+      setMessages((prev) => {
+        const updated = [...prev, {
+          id: data.id,
+          role: "assistant" as const,
+          content: data.content,
+          timestamp: data.timestamp,
+        }];
+        saveMessages(updated);
+        return updated;
+      });
     });
 
     return () => {
@@ -58,22 +80,21 @@ export function useChat() {
 
   const sendMessage = useCallback((content: string) => {
     const userMessage: ChatMessage = {
-      id:
-        typeof crypto.randomUUID === "function"
-          ? crypto.randomUUID()
-          : Array.from(crypto.getRandomValues(new Uint8Array(16)))
-              .map((b) => b.toString(16).padStart(2, "0"))
-              .join("-"),
+      id: generateId(),
       role: "user",
       content,
-      timestamp: new Date().toISOString(), // string, not Date
+      timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
-
     getSocket().emit("chat:message", { content });
+  }, []);
+
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    sessionStorage.removeItem(MESSAGES_KEY);
   }, []);
 
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
 
-  return { messages, isOpen, toggle, sendMessage };
+  return { messages, isOpen, toggle, sendMessage, clearMessages };
 }
