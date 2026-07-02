@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types";
 import { format } from "date-fns";
+import { Textarea } from "../ui/textarea";
 
 interface ChatWindowProps {
   messages: ChatMessage[];
@@ -44,25 +45,18 @@ export function ChatWindow({ messages, onSend }: ChatWindowProps) {
           <div
             key={msg.id}
             className={cn(
-              "relative max-w-[75%] wrap-break-word whitespace-pre-wrap rounded-lg px-3 py-2",
+              "max-w-[85%] w-fit wrap-break-word whitespace-pre-wrap rounded-lg px-2 py-1",
               msg.role === "user"
-                ? "ml-auto bg-primary text-primary-foreground"
+                ? "ml-auto bg-card text-primary-foreground"
                 : "bg-muted text-muted-foreground",
             )}
           >
-            <p className="text-sm">
-              {msg.content}
-              <span
-                className={cn(
-                  msg.role === "user"
-                    ? "text-primary-foreground/60"
-                    : "text-muted-foreground/70",
-                  "text-[10px]  leading-tight absolute bottom-0 right-1",
-                )}
-              >
+            <div className="flex gap-2 items-end justify-between">
+              <p className="text-sm text-muted-foreground">{msg.content}</p>
+              <span className="text-muted-foreground/70 text-[10px] leading-1">
                 {format(msg.timestamp, "HH:mm")}
               </span>
-            </p>
+            </div>
           </div>
         ))}
       </div>
@@ -72,14 +66,18 @@ export function ChatWindow({ messages, onSend }: ChatWindowProps) {
         onSubmit={handleSubmit}
         className="sticky bottom-1 w-full px-2 mx-auto flex items-center gap-2"
       >
-        <input
-          type="text"
+        <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type a message..."
-          className="w-full rounded-md bg-muted px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+          className="w-full min-h-0 rounded-4xl bg-muted/15 px-3 py-1 text-sm outline-none placeholder:text-muted-foreground ring-1"
         />
-        <Button type="submit" size="icon" variant="secondary">
+        <Button
+          type="submit"
+          size="icon"
+          variant="secondary"
+          className="rounded-full flex items-center justify-center size-8"
+        >
           <Send size={16} />
         </Button>
       </form>

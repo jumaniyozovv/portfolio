@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle, Trash, Trash2, X } from "lucide-react";
 import { ChatWindow } from "@/components/chat/chat-window";
 import { useChat } from "@/hooks/use-chat";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ export function ChatWidget() {
                 className="text-xs text-muted-foreground transition-colors hover:text-destructive"
                 aria-label="Clear chat"
               >
-                Clear
+                <Trash2 className="hover:text-red-500" size={16}/>
               </button>
             )}
             <button

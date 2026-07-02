@@ -12,7 +12,7 @@ export function ContactSection() {
           Have a question or want to work together? I'd love to hear from you.
         </p>
         <Button asChild size="lg" className="mt-8">
-          <a href="mailto:hello@example.com">
+          <a href="mailto:njumaniyozov001@gmail.com">
             <Mail size={18} />
             Send an Email
           </a>

